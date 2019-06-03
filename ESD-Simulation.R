@@ -43,22 +43,23 @@ simGOE <- function(N,M){
 #Create a Wigner matrix
 Wigner <- function(N,dist=Cnorm){
   X <- matrix(dist(N*N),nrow = N)
-  return(X+Conj(t(X)))
+  return((X+Conj(t(X)))/sqrt(2))
 }
 
 #Simulate M samples of NxN Wigner with specified distribution
-simWigner <- function(N,M,dist=rnorm){
+simWigner <- function(N,M,dist=rnorm,Returnspec = FALSE){
   L <- c()
   for (i in 1:M) {
-    H <- wigner(N,dist)
+    H <- Wigner(N,dist)
     a <- eigen(H,only.values = TRUE)
     L <- append(L, a$values/sqrt(N))
   }
   hist(L,prob=TRUE,
        main=sprintf("Eigenvalues of %d samples of specified wigner matrices",M), 
        border="blue", 
-       col="pink",
+       col="grey",
        breaks=100)
+  if(Returnspec) return(L)
 }
 
 ########## Random plot calls
@@ -67,19 +68,9 @@ L1 <- simIID(500,100,rnorm,returnL = TRUE)
 hist(Re(L1[Im(L1)==0]),breaks = 30,prob=T) 
 
 #Added mean to a Ginibre and Wigner
-L1 <- simIID(100,500,function(n){complex(real=rnorm(n,sqrt(2)/10,1),
-                                         imaginary = rnorm(n,sqrt(2)/10,1))/sqrt(2)},returnL = T)
-hexbinplot(Im(L1)~Re(L1),colramp=BTC)
-simWigner(50,500,function(n){rexp(n)})
-simWigner(100,500,function(n){rbinom(n,1,0.5)})
-
-simGOE(100,100)
-simGOE(1000,1)
-simIID(100,100)
-simIID(1000,1)
+L2 <- simIID(100,500,function(n){Cnorm(n)+complex(real=1/10,imaginary=1/10)},returnL = T)
+hexbinplot(Im(L2)~Re(L2),colramp=BTC)
+simWigner(100,10000,function(n){rexp(n)})
 
 L<- simIID(10000,1,returnL = T) #This command takes time to execute (~25min)
 hexbinplot(Im(L)~Re(L),colramp=BTC)
-simIID(100,500,function(n){2*rbinom(n,1,0.5)-1})
-simWigner(100,200,function(n){2*rbinom(n,1,0.5)-1})
-simWigner(500,1,rcauchy)
